@@ -18,7 +18,7 @@ class MPDBAgent(Agent.Movies):
     if media.primary_metadata is not None:
       results.Append(MetadataSearchResult(id = media.primary_metadata.id.replace('tt',''), score = 100)) # we can use the IMDB id for this one
 
-  def update(self, metadata, lang):
+  def update(self, metadata, media, lang):
     queryJSON = JSON.ObjectFromURL(MPDB_JSON % metadata.id)
     if not queryJSON.has_key('errors'):
       imageUrl = queryJSON['imageurl'].replace('\\','')
