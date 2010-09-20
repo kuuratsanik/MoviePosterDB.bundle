@@ -1,8 +1,4 @@
-#MoviePosterDB
-#import md5
 MPDB_JSON = 'http://api.movieposterdb.com/json.inc.php?imdb=%s&width=300'
-defaultFlag = 'US'
-flagSearchUrl = 'http://www.movieposterdb.com/images/flags/%s.gif'
 
 def Start():
   HTTP.CacheTime = CACHE_1DAY
@@ -20,68 +16,25 @@ class MPDBAgent(Agent.Movies):
 
   def update(self, metadata, media, lang):
     queryJSON = JSON.ObjectFromURL(MPDB_JSON % metadata.id)
+    print MPDB_JSON % metadata.id
     if not queryJSON.has_key('errors'):
-      imageUrl = queryJSON['imageurl'].replace('\\','')
       pageUrl = queryJSON['page'].replace('\\','')
-      if imageUrl:
-        name = imageUrl.split('/')[-1]
-        #Log(md5.new(str(int(metadata.id)).encode('utf-8')).hexdigest()[9:21]) #this is a version of the algorithm we can use once we have an api key
-        if name not in metadata.posters:
-          try:
-            metadata.posters[name] = Proxy.Media(HTTP.Request(imageUrl), sort_order = 1)
-          except:
-            pass
       if pageUrl:
-        posterUrls = []
+        
         @parallelize
         def loopThroughPosters():
           try:
-            for pUrl in HTML.ElementFromURL(htmlStr).xpath("//td[@class='poster']"):
-              #TODO: ask James how best to handle country codes
+            i = 0
+            for pUrl in HTML.ElementFromURL(pageUrl).xpath("//td[@class='poster']"):
+              i += 1
               @task
-              def grabPoster(pUrl=pUrl):
-                posterUrl = pUrl.xpath('div/a')[0].get('href')
-                if posterUrl.count('group/') > 0:
-                  for gpUrl in HTML.ElementFromURL(posterUrl).xpath("//td[@class='poster']"):
-                    if gpUrl.xpath('..//img[contains(@src,"images/flags")]')[0].get('src') == flagSearchUrl % defaultFlag:
-                      posterUrls.append(gpUrl)
-                else:
-                  try:
-                    if pUrl.xpath('..//img[contains(@src,"images/flags")]')[0].get('src') == flagSearchUrl % defaultFlag:
-                      posterUrls.append(pUrl)
-                  except:
-                    pass
+              def grabPoster(pUrl=pUrl, i=i):
+                thumbUrl = pUrl.xpath('div/a/img')[0].get('src')
+                posterUrl = thumbUrl.replace('s_', 'l_').replace('t_', 'l_')
+                
+                proxy = Proxy.Preview
+                thumb = HTTP.Request(thumbUrl)
+                metadata.posters[posterUrl] = proxy(thumb, sort_order = i)
+                
           except:
             pass
-                  
-        i = 2
-        
-        # Dedupe and get URLs.
-        urls = []
-        urlMap = {}
-        
-        seen = set()
-        urlPairs = [self.getPosterUrls(x) for x in posterUrls]
-        urls = [x for x in urlPairs if x is not None and x[0] not in seen and not seen.add(x[0])]
-            
-        for urlPair in urls:
-          self.getPoster(urlPair, metadata, i)
-          i += 1
-            
-  def getPosterUrls(self, posterEl):
-    try:
-      posterUrl = posterEl.xpath('..//a')[0].get('href')
-      largePosterUrl = HTML.ElementFromURL(posterUrl).xpath('//img[@id="poster_image"]')[0].get('src')
-      thumbUrl = posterEl.xpath('..//img')[0].get('src')
-      return [thumbUrl, largePosterUrl]
-    except:
-      return None
-    
-  def getPoster(self, urlPair, metadata, i):
-    try:
-      thumbUrl, largePosterUrl = urlPair
-      proxy = Proxy.Preview
-      thumb = HTTP.Request(thumbUrl)
-      metadata.posters[largePosterUrl] = proxy(thumb, sort_order = i)
-    except:
-      pass
