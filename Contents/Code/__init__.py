@@ -16,7 +16,6 @@ class MPDBAgent(Agent.Movies):
 
   def update(self, metadata, media, lang):
     queryJSON = JSON.ObjectFromURL(MPDB_JSON % metadata.id)
-    print MPDB_JSON % metadata.id
     if not queryJSON.has_key('errors'):
       pageUrl = queryJSON['page'].replace('\\','')
       if pageUrl:
