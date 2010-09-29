@@ -1,4 +1,6 @@
-MPDB_JSON = 'http://api.movieposterdb.com/json.inc.php?imdb=%s&width=300'
+# MoviePosterDB
+MPDB_JSON = 'http://api.movieposterdb.com/json?imdb_code=%s&api_key=p13x&secret=%s&width=300'
+MPDB_SECRET = '76ca216b84c7ef6ab22ead1a253b79ba'
 
 def Start():
   HTTP.CacheTime = CACHE_1DAY
@@ -15,7 +17,9 @@ class MPDBAgent(Agent.Movies):
       results.Append(MetadataSearchResult(id = media.primary_metadata.id.replace('tt',''), score = 100)) # we can use the IMDB id for this one
 
   def update(self, metadata, media, lang):
-    queryJSON = JSON.ObjectFromURL(MPDB_JSON % metadata.id)
+    imdb_code = metadata.id.lstrip('t0')
+    secret = Hash.MD5( ''.join([MPDB_SECRET, imdb_code]) )[10:22]
+    queryJSON = JSON.ObjectFromURL(MPDB_JSON % (imdb_code, secret))
     if not queryJSON.has_key('errors'):
       pageUrl = queryJSON['page'].replace('\\','')
       if pageUrl:
@@ -30,10 +34,9 @@ class MPDBAgent(Agent.Movies):
               def grabPoster(pUrl=pUrl, i=i):
                 thumbUrl = pUrl.xpath('div/a/img')[0].get('src')
                 posterUrl = thumbUrl.replace('s_', 'l_').replace('t_', 'l_')
-                
-                proxy = Proxy.Preview
+
                 thumb = HTTP.Request(thumbUrl)
-                metadata.posters[posterUrl] = proxy(thumb, sort_order = i)
-                
+                metadata.posters[posterUrl] = Proxy.Preview(thumb, sort_order = i)
+
           except:
             pass
