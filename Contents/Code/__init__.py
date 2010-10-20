@@ -13,10 +13,14 @@ class MPDBAgent(Agent.Movies):
   contributes_to = ['com.plexapp.agents.imdb']
   
   def search(self, results, media, lang):
+    return
+    
     if media.primary_metadata is not None:
       results.Append(MetadataSearchResult(id = media.primary_metadata.id.replace('tt',''), score = 100)) # we can use the IMDB id for this one
 
   def update(self, metadata, media, lang):
+    return
+    
     imdb_code = metadata.id.lstrip('t0')
     secret = Hash.MD5( ''.join([MPDB_SECRET, imdb_code]) )[10:22]
     queryJSON = JSON.ObjectFromURL(MPDB_JSON % (imdb_code, secret))
