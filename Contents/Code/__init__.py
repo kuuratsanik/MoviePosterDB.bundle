@@ -20,12 +20,17 @@ class MPDBAgent(Agent.Movies):
     imdb_code = metadata.id.lstrip('t0')
     secret = Hash.MD5( ''.join([MPDB_SECRET, imdb_code]))[10:22]
     queryJSON = JSON.ObjectFromURL(MPDB_JSON % (imdb_code, secret), cacheTime=10)
-    print queryJSON
+
     if not queryJSON.has_key('errors') and queryJSON.has_key('posters'):
       i = 0
+      valid_names = list()
+      
       for poster in queryJSON['posters']:
         imageUrl = MPDB_ROOT + '/' + poster['image_location']
         thumbUrl = MPDB_ROOT + '/' + poster['thumbnail_location']
-        fullImageUrl = imageUrl + '?api_key=p13x2&secret=' + secret
-        metadata.posters[fullImageUrl] = Proxy.Preview(HTTP.Request(thumbUrl), sort_order = i)
+        full_image_url = imageUrl + '?api_key=p13x2&secret=' + secret
+        metadata.posters[full_image_url] = Proxy.Preview(HTTP.Request(thumbUrl), sort_order = i)
+        valid_names.append(full_image_url)
         i += 1
+     
+    metadata.posters.validate_keys(valid_names)
