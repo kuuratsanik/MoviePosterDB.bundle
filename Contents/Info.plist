@@ -20,5 +20,11 @@
 	<string>2</string>
 	<key>PlexPluginMode</key>
 	<string>AlwaysOn</string>
+	<key>PlexAgentAttributionText</key>
+  <string>
+    The main purpose of the &lt;a href=&quot;http://www.movieposterdb.com&quot;&gt;MoviePosterDB.com&lt;/a&gt; website &lt;br/&gt;
+					is to provide a database with movie posters that is as &lt;br/&gt;
+					complete as possible. All movie posters are free to download.
+  </string>
 </dict>
 </plist>
