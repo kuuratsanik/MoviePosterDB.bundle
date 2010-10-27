@@ -20,6 +20,7 @@ class MPDBAgent(Agent.Movies):
     imdb_code = metadata.id.lstrip('t0')
     secret = Hash.MD5( ''.join([MPDB_SECRET, imdb_code]))[10:22]
     queryJSON = JSON.ObjectFromURL(MPDB_JSON % (imdb_code, secret), cacheTime=10)
+    valid_names = list()
 
     if not queryJSON.has_key('errors') and queryJSON.has_key('posters'):
       i = 0
