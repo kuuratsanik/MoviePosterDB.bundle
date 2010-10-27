@@ -1,5 +1,5 @@
 # MoviePosterDB
-MPDB_ROOT = 'http://api.movieposterdb.com'
+MPDB_ROOT = 'http://movieposterdb.plexapp.com'
 MPDB_JSON = MPDB_ROOT + '/1/request.json?imdb_id=%s&api_key=p13x2&secret=%s&width=720&thumb_width=100'
 MPDB_SECRET = 'e3c77873abc4866d9e28277a9114c60c'
 
