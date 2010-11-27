@@ -30,8 +30,10 @@ class MPDBAgent(Agent.Movies):
         imageUrl = MPDB_ROOT + '/' + poster['image_location']
         thumbUrl = MPDB_ROOT + '/' + poster['thumbnail_location']
         full_image_url = imageUrl + '?api_key=p13x2&secret=' + secret
-        metadata.posters[full_image_url] = Proxy.Preview(HTTP.Request(thumbUrl), sort_order = i)
-        valid_names.append(full_image_url)
-        i += 1
+        
+        if poster['language'] == 'US':
+          metadata.posters[full_image_url] = Proxy.Preview(HTTP.Request(thumbUrl), sort_order = i)
+          valid_names.append(full_image_url)
+          i += 1
      
     metadata.posters.validate_keys(valid_names)
