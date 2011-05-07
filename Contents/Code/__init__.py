@@ -24,16 +24,29 @@ class MPDBAgent(Agent.Movies):
 
     if not queryJSON.has_key('errors') and queryJSON.has_key('posters'):
       i = 0
-      valid_names = list()
-      
+            
+      # Look through the posters for ones with language matches.
       for poster in queryJSON['posters']:
-        imageUrl = MPDB_ROOT + '/' + poster['image_location']
-        thumbUrl = MPDB_ROOT + '/' + poster['thumbnail_location']
-        full_image_url = imageUrl + '?api_key=p13x2&secret=' + secret
-        
-        if poster['language'] == 'US':
-          metadata.posters[full_image_url] = Proxy.Preview(HTTP.Request(thumbUrl), sort_order = i)
-          valid_names.append(full_image_url)
+        poster_language = poster['language'].lower().replace('us', 'en').replace('uk', 'en').replace('ca', 'en')
+        if lang == poster_language:
+          Log('Adding matching language poster for language: %s', poster['language'])
+          valid_names.append(self.add_poster(metadata, secret, poster, i))
           i += 1
-     
+          found = True
+          
+      # If we didn't find a language match, add the first foreign one.
+      if i == 0 and len(queryJSON['posters']) > 0:
+        Log('Falling back to foreign language poster with language: %s', queryJSON['posters'][0]['language'])
+        valid_names.append(self.add_poster(metadata, secret, queryJSON['posters'][0], i))
+          
     metadata.posters.validate_keys(valid_names)
+    
+  def add_poster(self, metadata, secret, poster, index):
+    imageUrl = MPDB_ROOT + '/' + poster['image_location']
+    thumbUrl = MPDB_ROOT + '/' + poster['thumbnail_location']
+    full_image_url = imageUrl + '?api_key=p13x2&secret=' + secret
+
+    Log('Adding new poster: %s' % full_image_url)
+    metadata.posters[full_image_url] = Proxy.Preview(HTTP.Request(thumbUrl), sort_order = index)
+    return full_image_url
+    
